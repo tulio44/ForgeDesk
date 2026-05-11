@@ -12,46 +12,44 @@ Na Sprint 1, a implementação contempla o backend REST, a persistência em Post
 ## Arquitetura Geral
 
 ```mermaid
-flowchart LR
-    CLIENTE["App Cliente<br/>Flutter/Dart<br/>(Sprint 3)"]
-    PRESTADOR["App Prestador<br/>Flutter/Dart<br/>(Sprint 4)"]
-
-    API["ForgeDesk API<br/>Flask / Python 3.13"]
-
-    DB[("PostgreSQL 16<br/>solicitacoes criativas")]
-
-    MOM["MOM<br/>RabbitMQ ou Redis Pub/Sub<br/>(Sprint 2)"]
-
-    CLIENTE -->|"cria e acompanha solicitações<br/>HTTP/REST + JSON"| API
-    PRESTADOR -->|"consulta e atualiza serviços<br/>HTTP/REST + JSON"| API
-
-    API -->|"persiste solicitações<br/>SQL via SQLAlchemy"| DB
-
-    API -.->|"publica eventos do fluxo criativo"| MOM
-    MOM -.->|"nova oportunidade criativa"| PRESTADOR
-    MOM -.->|"mudança de status"| CLIENTE
-```
-
----
-
-## Organização Interna da API
-
-```mermaid
 flowchart TD
-    MAIN["main.py<br/>Inicialização da API"]
-    API["api/solicitacoes.py<br/>Rotas HTTP"]
-    SERVICE["services/solicitacao_service.py<br/>Regras do fluxo criativo"]
-    SCHEMA["schemas/solicitacao.py<br/>Validação e conversão JSON"]
-    MODEL["models/solicitacao.py<br/>Modelo da solicitação"]
-    DATABASE["database/database.py<br/>Conexão PostgreSQL"]
-    CONFIG["core/config.py<br/>Variáveis de ambiente"]
+    subgraph "Client Layer"
+        CLIENTE["App Cliente<br/>Flutter/Dart<br/>(Sprint 3)"]
+        PRESTADOR["App Prestador<br/>Flutter/Dart<br/>(Sprint 4)"]
+    end
 
-    MAIN --> API
+    subgraph "API Layer"
+        MAIN["main.py<br/>Inicialização"]
+        API["api/solicitacoes.py<br/>Rotas HTTP"]
+        SERVICE["services/solicitacao_service.py<br/>Regras do fluxo"]
+        SCHEMA["schemas/solicitacao.py<br/>Validação JSON"]
+        MODEL["models/solicitacao.py<br/>Modelo"]
+        DATABASE["database/database.py<br/>Conexão PostgreSQL"]
+        CONFIG["core/config.py<br/>Config"]
+    end
+
+    subgraph "Data Layer"
+        DB[("PostgreSQL 16<br/>solicitacoes")]
+    end
+
+    subgraph "Messaging Layer"
+        MOM["MOM<br/>RabbitMQ ou Redis<br/>(Sprint 2)"]
+    end
+
+    CLIENTE -->|"HTTP/REST + JSON"| API
+    PRESTADOR -->|"HTTP/REST + JSON"| API
+
     API --> SERVICE
-    API --> SCHEMA
     SERVICE --> MODEL
     SERVICE --> DATABASE
     DATABASE --> CONFIG
+    SERVICE -->|"SQL via SQLAlchemy"| DB
+
+    API -.->|"publica eventos"| MOM
+    MOM -.->|"eventos"| PRESTADOR
+    MOM -.->|"eventos"| CLIENTE
+
+    MAIN --> API
 ```
 
 ---
