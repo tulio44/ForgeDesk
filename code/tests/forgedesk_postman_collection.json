@@ -1,0 +1,88 @@
+{
+  "info": {
+    "name": "ForgeDesk",
+    "description": "Coleção de testes da Sprint 1 do backend REST do ForgeDesk.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8000/health"
+      }
+    },
+    {
+      "name": "Criar Solicitação",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cliente_id\": 1,\n  \"titulo\": \"Capa para PDF de RPG independente\",\n  \"descricao\": \"Preciso de uma capa digital para um suplemento autoral de fantasia.\",\n  \"tipo_servico\": \"Design\",\n  \"orcamento\": 150.0,\n  \"referencia\": \"Estilo pintura digital escura\"\n}"
+        },
+        "url": "http://localhost:8000/solicitacoes"
+      }
+    },
+    {
+      "name": "Listar Solicitações",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8000/solicitacoes"
+      }
+    },
+    {
+      "name": "Buscar Solicitação por ID",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:8000/solicitacoes/1"
+      }
+    },
+    {
+      "name": "Atualizar Status da Solicitação",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"ACEITA\",\n  \"prestador_id\": 2\n}"
+        },
+        "url": "http://localhost:8000/solicitacoes/1/status"
+      }
+    },
+    {
+      "name": "Atualizar Solicitação",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Capa revisada para PDF de RPG independente\",\n  \"descricao\": \"Preciso de uma capa digital com aparência mais profissional para um suplemento autoral.\",\n  \"tipo_servico\": \"Design\",\n  \"orcamento\": 200.0,\n  \"referencia\": \"Estilo fantasia sombria\"\n}"
+        },
+        "url": "http://localhost:8000/solicitacoes/1"
+      }
+    },
+    {
+      "name": "Remover Solicitação",
+      "request": {
+        "method": "DELETE",
+        "url": "http://localhost:8000/solicitacoes/1"
+      }
+    }
+  ]
+}
