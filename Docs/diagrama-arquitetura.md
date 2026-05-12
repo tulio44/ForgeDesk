@@ -5,7 +5,7 @@
 O ForgeDesk é uma plataforma para contratação de serviços criativos voltados a projetos independentes.  
 O sistema permite que clientes publiquem solicitações com briefing, prazo, orçamento e referências, enquanto prestadores criativos visualizam oportunidades disponíveis, aceitam demandas e atualizam o andamento do serviço.
 
-Na Sprint 1, a implementação contempla o backend REST, a persistência em PostgreSQL, o schema documentado e a coleção de testes no Postman. Os aplicativos móveis e a comunicação assíncrona por MOM fazem parte da arquitetura planejada para as próximas sprints.
+Na Sprint 1, a entrega foca em um backend REST robusto, persistência PostgreSQL e documentação do schema, com testes organizados via Postman. As próximas sprints vão adicionar os clientes móveis e um circuito de eventos assíncronos apoiado por mensageria.
 
 ---
 
@@ -43,30 +43,48 @@ flowchart LR
 
 ---
 
-## Componentes do Sistema
+## Camadas de solução
 
-| Componente | Tecnologia | Responsabilidade |
-|---|---|---|
-| App Cliente | Flutter / Dart | Permitir que clientes criem solicitações criativas e acompanhem seus status |
-| App Prestador | Flutter / Dart | Permitir que prestadores visualizem oportunidades, aceitem serviços e atualizem o andamento |
-| ForgeDesk API | Flask / Python 3.13 | Expor endpoints REST, validar dados e controlar o fluxo das solicitações |
-| Banco de Dados | PostgreSQL 16 | Armazenar solicitações, status, prazos, orçamentos e vínculos com prestadores |
-| MOM | RabbitMQ ou Redis Pub/Sub | Distribuir eventos assíncronos nas próximas sprints |
-| Postman | Collection JSON | Documentar e testar os endpoints da Sprint 1 |
-| Docker Compose | Docker | Subir o PostgreSQL em ambiente local de desenvolvimento |
+O ForgeDesk é construído em camadas claras:
+
+- `Client Layer`: clientes e prestadores usam apps Flutter para criar solicitações e gerenciar serviços.
+- `ForgeDesk API`: backend Flask que recebe requisições REST, processa lógica de negócio e persiste dados.
+- `Infraestrutura persistente`: PostgreSQL guarda os registros de solicitação, valores e estado do fluxo.
+- `Mensageria futura`: RabbitMQ/Redis entra em ação nas próximas sprints para eventos e notificações assíncronas.
 
 ---
 
-## Comunicação entre Componentes
+## Componentes principais
 
-| Origem | Destino | Comunicação | Formato |
+| Componente | Papel no sistema |
+|---|---|
+| App Cliente | Cria solicitações criativas, consulta status e recebe atualizações |
+| App Prestador | Exibe oportunidades, aceita trabalhos e atualiza entregas |
+| ForgeDesk API | Expõe endpoints REST, valida payloads e orquestra o fluxo das solicitações |
+| PostgreSQL | Mantém integridade dos dados e histórico das solicitações |
+| MOM | Infra para eventos e notificações em arquitetura assíncrona |
+| Postman | Repositório de coleções para testes e validação de APIs |
+| Docker Compose | Ambiente local consistente para rodar o banco durante o desenvolvimento |
+
+---
+
+## Fluxo de dados e eventos
+
+A ideia central é simples: clientes e prestadores interagem com a API via HTTP, e a API centraliza a lógica.
+
+- `App Cliente -> ForgeDesk API`: criação e consulta de solicitações.
+- `App Prestador -> ForgeDesk API`: listagem de vagas, aceitação e atualização de status.
+- `ForgeDesk API -> PostgreSQL`: gravação e leitura persistente via SQLAlchemy.
+- `ForgeDesk API -> MOM`: futura publicação de eventos de status e novas demandas.
+- `MOM -> Apps`: notificações assíncronas para cliente e prestador.
+
+| Origem | Destino | Canal | Observação |
 |---|---|---|---|
-| App Cliente | ForgeDesk API | HTTP/REST | JSON |
-| App Prestador | ForgeDesk API | HTTP/REST | JSON |
-| ForgeDesk API | PostgreSQL | Protocolo PostgreSQL | SQL via SQLAlchemy |
-| ForgeDesk API | MOM | AMQP ou Redis Pub/Sub | JSON |
-| MOM | App Prestador | WebSocket ou polling assíncrono | JSON |
-| MOM | App Cliente | WebSocket ou polling assíncrono | JSON |
+| App Cliente | ForgeDesk API | HTTP/REST | JSON request/response |
+| App Prestador | ForgeDesk API | HTTP/REST | JSON request/response |
+| ForgeDesk API | PostgreSQL | SQLAlchemy | Persistência relacional |
+| ForgeDesk API | MOM | AMQP ou Redis | Assíncrono |
+| MOM | Apps | WebSocket/polling | Notificações em tempo próximo |
 
 ---
 
