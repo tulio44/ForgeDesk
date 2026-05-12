@@ -12,7 +12,7 @@ Na Sprint 1, a implementação contempla o backend REST, a persistência em Post
 ## Arquitetura Geral
 
 ```mermaid
-flowchart TD
+flowchart LR
     subgraph "Client Layer"
         CLIENTE["App Cliente<br/>Flutter/Dart<br/>(Sprint 3)"]
         PRESTADOR["App Prestador<br/>Flutter/Dart<br/>(Sprint 4)"]
