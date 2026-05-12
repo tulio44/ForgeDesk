@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 
 from api.solicitacoes import solicitacoes_bp
-from core.config import FLASK_PORT
+from core.config import FLASK_PORT, DEBUG
 from database.database import Base, engine
 from models.solicitacao import Solicitacao
 
@@ -27,5 +27,5 @@ if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
         port=FLASK_PORT,
-        debug=True
+        debug=DEBUG
     )
