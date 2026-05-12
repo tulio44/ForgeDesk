@@ -1,3 +1,6 @@
+from datetime import date
+
+
 STATUS_VALIDOS = [
     "PENDENTE",
     "ACEITA",
@@ -19,6 +22,24 @@ def validar_solicitacao_create(data):
     for campo in campos_obrigatorios:
         if campo not in data or data[campo] in [None, ""]:
             return False, f"O campo '{campo}' é obrigatório."
+
+    # Validações de tipo
+    try:
+        int(data["cliente_id"])
+    except (ValueError, TypeError):
+        return False, "cliente_id deve ser um inteiro."
+
+    if "orcamento" in data and data["orcamento"] is not None:
+        try:
+            float(data["orcamento"])
+        except (ValueError, TypeError):
+            return False, "orcamento deve ser um número."
+
+    if "prazo" in data and data["prazo"]:
+        try:
+            date.fromisoformat(data["prazo"])
+        except (ValueError, TypeError):
+            return False, "prazo deve estar no formato YYYY-MM-DD."
 
     return True, None
 

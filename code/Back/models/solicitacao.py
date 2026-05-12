@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Date, DateTime, Float, Integer, String
+from sqlalchemy import Column, Date, DateTime, Float, Integer, String, Text
 
 from database.database import Base
 
@@ -13,7 +13,7 @@ class Solicitacao(Base):
     prestador_id = Column(Integer, nullable=True, index=True)
 
     titulo = Column(String(120), nullable=False)
-    descricao = Column(String, nullable=False)
+    descricao = Column(Text, nullable=False)
     tipo_servico = Column(String(80), nullable=False)
 
     orcamento = Column(Float, nullable=True)
