@@ -10,7 +10,7 @@ A ideia é permitir que um cliente crie uma solicitação com título, descriç�
 
 ## Status
 
-- Sprint 1: Arquitetura e Backend REST — concluída
+- Sprint 1: Arquitetura e Backend REST — concluída ✅
 - Sprint 2: Integração com MOM — pendente
 - Sprint 3: App Flutter Cliente — pendente
 - Sprint 4: App Flutter Prestador — pendente
