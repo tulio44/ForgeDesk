@@ -18,14 +18,9 @@ flowchart LR
         PRESTADOR["App Prestador<br/>Flutter/Dart<br/>(Sprint 4)"]
     end
 
-    subgraph "API Layer"
-        MAIN["main.py<br/>Inicialização"]
-        API["api/solicitacoes.py<br/>Rotas HTTP"]
-        SERVICE["services/solicitacao_service.py<br/>Regras do fluxo"]
-        SCHEMA["schemas/solicitacao.py<br/>Validação JSON"]
-        MODEL["models/solicitacao.py<br/>Modelo"]
-        DATABASE["database/database.py<br/>Conexão PostgreSQL"]
-        CONFIG["core/config.py<br/>Config"]
+    subgraph "ForgeDesk API"
+        API["API Flask / Python<br/>Endpoints REST"]
+        SERVICE["Serviço<br/>Regras do fluxo"]
     end
 
     subgraph "Data Layer"
@@ -39,17 +34,11 @@ flowchart LR
     CLIENTE -->|"HTTP/REST + JSON"| API
     PRESTADOR -->|"HTTP/REST + JSON"| API
 
-    API --> SERVICE
-    SERVICE --> MODEL
-    SERVICE --> DATABASE
-    DATABASE --> CONFIG
+    API -->|"controla fluxo"| SERVICE
     SERVICE -->|"SQL via SQLAlchemy"| DB
-
     API -.->|"publica eventos"| MOM
     MOM -.->|"eventos"| PRESTADOR
     MOM -.->|"eventos"| CLIENTE
-
-    MAIN --> API
 ```
 
 ---
