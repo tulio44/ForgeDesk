@@ -9,3 +9,4 @@ DATABASE_URL = os.getenv(
 )
 
 FLASK_PORT = int(os.getenv("FLASK_PORT", 8000))
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
