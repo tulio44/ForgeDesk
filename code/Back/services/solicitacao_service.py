@@ -1,18 +1,34 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from models.solicitacao import Solicitacao
 from schemas.solicitacao import validar_status
 
 
 def criar_solicitacao(db, data):
+    # Parse and validate types
+    cliente_id = int(data["cliente_id"])
+    titulo = data["titulo"]
+    descricao = data["descricao"]
+    tipo_servico = data["tipo_servico"]
+    
+    orcamento = data.get("orcamento")
+    if orcamento is not None:
+        orcamento = float(orcamento)
+    
+    prazo = data.get("prazo")
+    if prazo:
+        prazo = date.fromisoformat(prazo)
+    
+    referencia = data.get("referencia")
+
     solicitacao = Solicitacao(
-        cliente_id=data["cliente_id"],
-        titulo=data["titulo"],
-        descricao=data["descricao"],
-        tipo_servico=data["tipo_servico"],
-        orcamento=data.get("orcamento"),
-        prazo=data.get("prazo"),
-        referencia=data.get("referencia"),
+        cliente_id=cliente_id,
+        titulo=titulo,
+        descricao=descricao,
+        tipo_servico=tipo_servico,
+        orcamento=orcamento,
+        prazo=prazo,
+        referencia=referencia,
         status="PENDENTE"
     )
 
@@ -45,8 +61,15 @@ def atualizar_status(db, solicitacao_id, data):
 
     solicitacao.status = novo_status
 
-    if data.get("prestador_id") is not None:
-        solicitacao.prestador_id = data.get("prestador_id")
+    if "prestador_id" in data:
+        prestador_id = data["prestador_id"]
+        if prestador_id is not None:
+            try:
+                solicitacao.prestador_id = int(prestador_id)
+            except (ValueError, TypeError):
+                return None, "prestador_id deve ser um inteiro ou null."
+        else:
+            solicitacao.prestador_id = None
 
     solicitacao.atualizado_em = datetime.utcnow()
 
@@ -62,6 +85,19 @@ def atualizar_solicitacao(db, solicitacao_id, data):
     if not solicitacao:
         return None
 
+    # Parse types
+    parsed_data = {}
+    for campo in data:
+        if campo == "orcamento" and data[campo] is not None:
+            parsed_data[campo] = float(data[campo])
+        elif campo == "prazo":
+            if data[campo]:
+                parsed_data[campo] = date.fromisoformat(data[campo])
+            else:
+                parsed_data[campo] = None
+        else:
+            parsed_data[campo] = data[campo]
+
     campos_editaveis = [
         "titulo",
         "descricao",
@@ -72,8 +108,8 @@ def atualizar_solicitacao(db, solicitacao_id, data):
     ]
 
     for campo in campos_editaveis:
-        if campo in data:
-            setattr(solicitacao, campo, data[campo])
+        if campo in parsed_data:
+            setattr(solicitacao, campo, parsed_data[campo])
 
     solicitacao.atualizado_em = datetime.utcnow()
 
