@@ -11,7 +11,7 @@ A ideia é permitir que um cliente crie uma solicitação com título, descriç�
 ## Status
 
 - Sprint 1: Arquitetura e Backend REST — concluída ✅
-- Sprint 2: Integração com MOM — pendente
+- Sprint 2: Integração com MOM — concluída ✅
 - Sprint 3: App Flutter Cliente — pendente
 - Sprint 4: App Flutter Prestador — pendente
 
@@ -23,10 +23,11 @@ A ideia é permitir que um cliente crie uma solicitação com título, descriç�
 - Flask
 - SQLAlchemy
 - PostgreSQL 16
+- RabbitMQ
 - Docker Compose
 - Postman
 
-Nas próximas sprints, o projeto também utilizará Flutter e um Middleware Orientado a Mensagens, como RabbitMQ ou Redis Pub/Sub.
+Nas próximas sprints, o projeto também utilizará Flutter.
 
 ---
 
@@ -70,6 +71,67 @@ Exemplo:
 ```env
 DATABASE_URL=postgresql+psycopg://forgedesk_user:forgedesk_pass@localhost:5432/forgedesk_db
 FLASK_PORT=8000
+RABBITMQ_HOST=localhost
+RABBITMQ_PORT=5672
+RABBITMQ_USER=forgedesk
+RABBITMQ_PASSWORD=forgedesk
+RABBITMQ_QUEUE=forgedesk_eventos
+```
+
+---
+
+## Sprint 2 — MOM
+
+A Sprint 2 adiciona integração com RabbitMQ. O backend publica eventos quando uma solicitação é criada e quando seu status é atualizado. Um consumidor separado processa essas mensagens pela fila `forgedesk_eventos`.
+
+### Subir RabbitMQ e PostgreSQL
+
+```powershell
+cd infra
+docker compose up -d
+```
+
+### Rodar backend
+
+```powershell
+cd code/Back
+.\.venv\Scripts\Activate.ps1
+python main.py
+```
+
+### Rodar consumidor
+
+Em outro terminal:
+
+```powershell
+cd code/Back
+.\.venv\Scripts\Activate.ps1
+python consumers/consumer_solicitacoes.py
+```
+
+### Painel RabbitMQ
+
+```text
+http://localhost:15672
+usuário: forgedesk
+senha: forgedesk
+```
+
+### Eventos publicados
+
+- `solicitacao.criada`
+- `solicitacao.status_atualizado`
+
+Documentação dos eventos:
+
+```text
+Docs/eventos-mom.md
+```
+
+Relatório de integração:
+
+```text
+Docs/relatorio-integracao-mom.md
 ```
 
 ---
@@ -140,6 +202,8 @@ Ela contém exemplos para criar, listar, buscar, atualizar e remover solicitaç�
 
 - Proposta do projeto: `Docs/Documento de Proposta - ForgeDesk.pdf`
 - Arquitetura: `Docs/diagrama-arquitetura.md`
+- Eventos MOM: `Docs/eventos-mom.md`
+- Relatório MOM: `Docs/relatorio-integracao-mom.md`
 - Schema do banco: `code/Back/database/schema.sql`
 - Collection Postman: `code/tests/forgedesk_postman_collection.json`
 

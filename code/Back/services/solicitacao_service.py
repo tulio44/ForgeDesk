@@ -1,5 +1,10 @@
 from datetime import datetime, date
 
+from messaging.eventos import (
+    montar_evento_solicitacao_criada,
+    montar_evento_status_atualizado
+)
+from messaging.rabbitmq import publicar_evento
 from models.solicitacao import Solicitacao
 from schemas.solicitacao import validar_status
 
@@ -36,6 +41,8 @@ def criar_solicitacao(db, data):
     db.commit()
     db.refresh(solicitacao)
 
+    publicar_evento(montar_evento_solicitacao_criada(solicitacao))
+
     return solicitacao
 
 
@@ -59,6 +66,7 @@ def atualizar_status(db, solicitacao_id, data):
     if not valido:
         return None, erro
 
+    status_anterior = solicitacao.status
     solicitacao.status = novo_status
 
     if "prestador_id" in data:
@@ -75,6 +83,13 @@ def atualizar_status(db, solicitacao_id, data):
 
     db.commit()
     db.refresh(solicitacao)
+
+    publicar_evento(
+        montar_evento_status_atualizado(
+            solicitacao,
+            status_anterior=status_anterior
+        )
+    )
 
     return solicitacao, None
 

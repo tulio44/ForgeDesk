@@ -12,5 +12,16 @@ services:
     volumes:
       - forgedesk_pgdata:/var/lib/postgresql/data
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: forgedesk_rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: forgedesk
+      RABBITMQ_DEFAULT_PASS: forgedesk
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
 volumes:
   forgedesk_pgdata:
