@@ -1,21 +1,51 @@
 import 'package:flutter/material.dart';
 
+import 'screens/login_screen.dart';
 import 'screens/solicitacao_list_screen.dart';
+import 'services/auth_service.dart';
+import 'services/solicitacao_service.dart';
 
 void main() {
   runApp(const ForgeDeskClienteApp());
 }
 
-class ForgeDeskClienteApp extends StatelessWidget {
+class ForgeDeskClienteApp extends StatefulWidget {
   const ForgeDeskClienteApp({super.key});
 
   @override
+  State<ForgeDeskClienteApp> createState() => _ForgeDeskClienteAppState();
+}
+
+class _ForgeDeskClienteAppState extends State<ForgeDeskClienteApp> {
+  AuthResult? _auth;
+
+  void _onAuthenticated(AuthResult auth) {
+    setState(() {
+      _auth = auth;
+    });
+  }
+
+  void _logout() {
+    setState(() {
+      _auth = null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final auth = _auth;
+
     return MaterialApp(
       title: 'ForgeDesk Cliente',
       debugShowCheckedModeBanner: false,
       theme: _buildForgeDeskTheme(),
-      home: SolicitacaoListScreen(),
+      home: auth == null
+          ? LoginScreen(onAuthenticated: _onAuthenticated)
+          : SolicitacaoListScreen(
+              service: SolicitacaoService(token: auth.token),
+              userName: auth.nome,
+              onLogout: _logout,
+            ),
     );
   }
 }
@@ -55,9 +85,14 @@ ThemeData _buildForgeDeskTheme() {
         side: BorderSide(color: forgeGold.withValues(alpha: 0.28)),
       ),
     ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: ember,
-      foregroundColor: Colors.white,
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: iron,
+      foregroundColor: forgeGold,
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: forgeGold.withValues(alpha: 0.42)),
+      ),
     ),
     chipTheme: ChipThemeData(
       backgroundColor: ember.withValues(alpha: 0.22),

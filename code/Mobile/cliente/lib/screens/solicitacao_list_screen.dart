@@ -12,10 +12,14 @@ class SolicitacaoListScreen extends StatefulWidget {
   SolicitacaoListScreen({
     super.key,
     SolicitacaoService? service,
+    this.userName,
+    this.onLogout,
     this.enablePolling = true,
   }) : service = service ?? SolicitacaoService();
 
   final SolicitacaoService service;
+  final String? userName;
+  final VoidCallback? onLogout;
   final bool enablePolling;
 
   @override
@@ -73,7 +77,7 @@ class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
 
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Nao foi possivel carregar as solicitacoes.';
+        _errorMessage = 'Não foi possível carregar as solicitações.';
       });
     }
   }
@@ -95,14 +99,17 @@ class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
 
     if (id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Solicitacao sem ID para abrir.')),
+        const SnackBar(
+          content: Text('Não foi possível abrir esta solicitação.'),
+        ),
       );
       return;
     }
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SolicitacaoDetailScreen(solicitacaoId: id),
+        builder: (_) =>
+            SolicitacaoDetailScreen(solicitacaoId: id, service: widget.service),
       ),
     );
   }
@@ -111,20 +118,36 @@ class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ForgeDesk Cliente'),
+        title: const Text('ForgeDesk'),
         actions: [
+          if (widget.userName != null)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Text(
+                  widget.userName!,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+            ),
           IconButton(
             onPressed: _carregarSolicitacoes,
             icon: const Icon(Icons.refresh),
             tooltip: 'Atualizar',
           ),
+          if (widget.onLogout != null)
+            IconButton(
+              onPressed: widget.onLogout,
+              icon: const Icon(Icons.logout),
+              tooltip: 'Sair',
+            ),
         ],
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _abrirCriacao,
-        tooltip: 'Forjar solicitacao',
-        child: const Icon(Icons.add),
+        tooltip: 'Nova solicitação',
+        child: const Icon(Icons.post_add),
       ),
     );
   }
@@ -144,7 +167,7 @@ class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
     }
 
     if (_solicitacoes.isEmpty) {
-      return const Center(child: Text('Nenhum contrato na forja ainda.'));
+      return const Center(child: Text('Nenhuma solicitação cadastrada.'));
     }
 
     return ListView.builder(
@@ -177,12 +200,12 @@ class _ListHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quadro de contratos',
+            'Solicitações',
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 6),
           Text(
-            'Pedidos criativos prontos para sair da forja.',
+            'Acompanhe os serviços solicitados e seus status.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],

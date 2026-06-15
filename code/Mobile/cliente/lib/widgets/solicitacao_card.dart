@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/solicitacao.dart';
+import '../utils/formatters.dart';
 
 class SolicitacaoCard extends StatelessWidget {
   const SolicitacaoCard({
@@ -29,7 +30,7 @@ class SolicitacaoCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.local_fire_department, color: colorScheme.primary),
+                  Icon(Icons.work_outline, color: colorScheme.primary),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -40,15 +41,19 @@ class SolicitacaoCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Text('Oficio: ${solicitacao.tipoServico}'),
+              Text(
+                'Tipo de serviço: ${formatarTipoServico(solicitacao.tipoServico)}',
+              ),
               const SizedBox(height: 4),
-              Text('Recompensa: ${_formatarOrcamento(solicitacao.orcamento)}'),
+              Text('Orçamento: ${formatarMoeda(solicitacao.orcamento)}'),
+              const SizedBox(height: 4),
+              Text('Prazo: ${formatarData(solicitacao.prazo)}'),
               const SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerLeft,
                 child: Chip(
                   label: Text(solicitacao.status),
-                  avatar: const Icon(Icons.shield, size: 16),
+                  avatar: const Icon(Icons.info_outline, size: 16),
                 ),
               ),
             ],
@@ -56,13 +61,5 @@ class SolicitacaoCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatarOrcamento(double? valor) {
-    if (valor == null) {
-      return 'Nao informado';
-    }
-
-    return 'R\$ ${valor.toStringAsFixed(2)}';
   }
 }

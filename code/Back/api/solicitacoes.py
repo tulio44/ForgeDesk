@@ -1,5 +1,6 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 
+from core.auth import validar_token
 from database.database import get_db
 from schemas.solicitacao import (
     validar_solicitacao_create,
@@ -15,6 +16,26 @@ from services.solicitacao_service import (
 )
 
 solicitacoes_bp = Blueprint("solicitacoes", __name__, url_prefix="/solicitacoes")
+
+
+@solicitacoes_bp.before_request
+def exigir_autenticacao():
+    if request.method == "OPTIONS":
+        return None
+
+    auth_header = request.headers.get("Authorization", "")
+
+    if not auth_header.startswith("Bearer "):
+        return jsonify({"erro": "Token de autenticação não informado."}), 401
+
+    token = auth_header.removeprefix("Bearer ").strip()
+    usuario = validar_token(token)
+
+    if not usuario:
+        return jsonify({"erro": "Token de autenticação inválido ou expirado."}), 401
+
+    g.usuario = usuario
+    return None
 
 
 @solicitacoes_bp.post("")
@@ -84,10 +105,11 @@ def atualizar(solicitacao_id):
     db = get_db()
 
     try:
-        solicitacao = atualizar_solicitacao(db, solicitacao_id, data)
+        solicitacao, erro = atualizar_solicitacao(db, solicitacao_id, data)
 
-        if not solicitacao:
-            return jsonify({"erro": "Solicitação não encontrada."}), 404
+        if erro:
+            status_code = 404 if not solicitacao else 400
+            return jsonify({"erro": erro}), status_code
 
         return jsonify(solicitacao_to_dict(solicitacao)), 200
     finally:

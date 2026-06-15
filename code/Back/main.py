@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 
+from api.auth import auth_bp
 from api.solicitacoes import solicitacoes_bp
 from core.config import FLASK_PORT, DEBUG
 from database.database import Base, engine
@@ -12,6 +13,7 @@ CORS(app)
 
 Base.metadata.create_all(bind=engine)
 
+app.register_blueprint(auth_bp)
 app.register_blueprint(solicitacoes_bp)
 
 

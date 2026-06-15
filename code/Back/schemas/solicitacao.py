@@ -10,6 +10,19 @@ STATUS_VALIDOS = [
     "RECUSADA"
 ]
 
+TIPOS_SERVICO_VALIDOS = [
+    "Design",
+    "Ilustração",
+    "Ilustracao",
+    "Edição de vídeo",
+    "Edicao de video",
+    "Identidade visual",
+    "Modelagem 3D",
+    "Social media",
+    "Motion graphics",
+    "UI/UX"
+]
+
 
 def validar_solicitacao_create(data):
     campos_obrigatorios = [
@@ -29,6 +42,10 @@ def validar_solicitacao_create(data):
     except (ValueError, TypeError):
         return False, "cliente_id deve ser um inteiro."
 
+    valido, erro = validar_tipo_servico(data["tipo_servico"])
+    if not valido:
+        return False, erro
+
     if "orcamento" in data and data["orcamento"] is not None:
         try:
             float(data["orcamento"])
@@ -40,6 +57,14 @@ def validar_solicitacao_create(data):
             date.fromisoformat(data["prazo"])
         except (ValueError, TypeError):
             return False, "prazo deve estar no formato YYYY-MM-DD."
+
+    return True, None
+
+
+def validar_tipo_servico(tipo_servico):
+    if tipo_servico not in TIPOS_SERVICO_VALIDOS:
+        tipos = ", ".join(TIPOS_SERVICO_VALIDOS)
+        return False, f"Tipo de serviço inválido. Use um destes: {tipos}"
 
     return True, None
 

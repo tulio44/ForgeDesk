@@ -6,7 +6,7 @@ from messaging.eventos import (
 )
 from messaging.rabbitmq import publicar_evento
 from models.solicitacao import Solicitacao
-from schemas.solicitacao import validar_status
+from schemas.solicitacao import validar_status, validar_tipo_servico
 
 
 def criar_solicitacao(db, data):
@@ -98,7 +98,12 @@ def atualizar_solicitacao(db, solicitacao_id, data):
     solicitacao = buscar_solicitacao_por_id(db, solicitacao_id)
 
     if not solicitacao:
-        return None
+        return None, "Solicitação não encontrada."
+
+    if "tipo_servico" in data:
+        valido, erro = validar_tipo_servico(data["tipo_servico"])
+        if not valido:
+            return solicitacao, erro
 
     # Parse types
     parsed_data = {}
@@ -131,7 +136,7 @@ def atualizar_solicitacao(db, solicitacao_id, data):
     db.commit()
     db.refresh(solicitacao)
 
-    return solicitacao
+    return solicitacao, None
 
 
 def deletar_solicitacao(db, solicitacao_id):
