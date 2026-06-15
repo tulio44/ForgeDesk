@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:forgedesk_cliente/models/solicitacao.dart';
+import 'package:forgedesk_cliente/screens/solicitacao_create_screen.dart';
 import 'package:forgedesk_cliente/screens/solicitacao_detail_screen.dart';
 import 'package:forgedesk_cliente/screens/solicitacao_list_screen.dart';
 import 'package:forgedesk_cliente/services/solicitacao_service.dart';
@@ -55,6 +56,24 @@ void main() {
     expect(find.text('Status'), findsOneWidget);
     expect(find.text('PENDENTE'), findsOneWidget);
   });
+
+  testWidgets('shows solicitacao create screen', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SolicitacaoCreateScreen(service: _FakeSolicitacaoService()),
+      ),
+    );
+
+    expect(find.text('Forjar solicitacao'), findsOneWidget);
+    expect(find.text('Novo contrato'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Titulo'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, 'Descricao'), findsOneWidget);
+    expect(
+      find.widgetWithText(TextFormField, 'Tipo de servico'),
+      findsOneWidget,
+    );
+    expect(find.widgetWithText(TextFormField, 'Orcamento'), findsOneWidget);
+  });
 }
 
 class _FakeSolicitacaoService extends SolicitacaoService {
@@ -80,5 +99,10 @@ class _FakeSolicitacaoService extends SolicitacaoService {
   @override
   Future<Solicitacao> buscarSolicitacaoPorId(int id) async {
     return _solicitacao;
+  }
+
+  @override
+  Future<Solicitacao> criarSolicitacao(Solicitacao solicitacao) async {
+    return solicitacao;
   }
 }

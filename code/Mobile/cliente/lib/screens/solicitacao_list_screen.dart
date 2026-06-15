@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/solicitacao.dart';
 import '../services/solicitacao_service.dart';
+import 'solicitacao_create_screen.dart';
 import 'solicitacao_detail_screen.dart';
 import '../widgets/solicitacao_card.dart';
 
@@ -77,14 +78,16 @@ class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
     }
   }
 
-  void _mostrarCriacaoPendente() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Criacao de solicitacao sera implementada na proxima etapa.',
-        ),
+  Future<void> _abrirCriacao() async {
+    final criouSolicitacao = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => SolicitacaoCreateScreen(service: widget.service),
       ),
     );
+
+    if (criouSolicitacao == true) {
+      await _carregarSolicitacoes();
+    }
   }
 
   void _abrirSolicitacao(Solicitacao solicitacao) {
@@ -119,7 +122,7 @@ class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
       ),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
-        onPressed: _mostrarCriacaoPendente,
+        onPressed: _abrirCriacao,
         tooltip: 'Forjar solicitacao',
         child: const Icon(Icons.add),
       ),
