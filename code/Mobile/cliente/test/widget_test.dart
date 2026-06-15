@@ -27,6 +27,64 @@ void main() {
     expect(find.text('PENDENTE'), findsOneWidget);
   });
 
+  testWidgets('opens detail screen from solicitacao card', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SolicitacaoListScreen(
+          service: _FakeSolicitacaoService(),
+          enablePolling: false,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('Identidade visual'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Contrato da forja'), findsOneWidget);
+  });
+
+  testWidgets('opens create screen and returns to list after submit', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SolicitacaoListScreen(
+          service: _FakeSolicitacaoService(),
+          enablePolling: false,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Forjar solicitacao'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Titulo'),
+      'Mapa de masmorra',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Descricao'),
+      'Criar um mapa para aventura curta.',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Tipo de servico'),
+      'Cartografia',
+    );
+    await tester.drag(find.byType(ListView), const Offset(0, -600));
+    await tester.pump();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Forjar contrato'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Quadro de contratos'), findsOneWidget);
+  });
+
   testWidgets('shows solicitacao detail screen', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(

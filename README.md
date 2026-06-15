@@ -136,6 +136,50 @@ Docs/relatorio-integracao-mom.md
 
 ---
 
+## Sprint 3 - App Cliente Flutter
+
+A Sprint 3 implementa o app Flutter do cliente, localizado em:
+
+```text
+code/Mobile/cliente
+```
+
+Funcionalidades entregues:
+
+- listagem de solicitacoes;
+- detalhes de uma solicitacao;
+- criacao de solicitacao;
+- integracao HTTP com a API Flask;
+- atualizacao automatica por polling a cada 10 segundos.
+
+Para rodar o app:
+
+```powershell
+cd code/Mobile/cliente
+flutter pub get
+flutter run
+```
+
+Por padrao, o app usa:
+
+```text
+http://localhost:8000
+```
+
+Esse endereco e adequado para web e desktop. Para emulador Android, use:
+
+```text
+http://10.0.2.2:8000
+```
+
+Documentacao da arquitetura Flutter Cliente:
+
+```text
+Docs/arquitetura-flutter-cliente.md
+```
+
+---
+
 ## Endpoints
 
 - `GET /health` — verifica se a API está funcionando
