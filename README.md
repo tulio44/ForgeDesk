@@ -69,13 +69,15 @@ O backend usa um arquivo `.env` dentro de `code/Back`.
 Exemplo:
 
 ```env
-DATABASE_URL=postgresql+psycopg://forgedesk_user:forgedesk_pass@localhost:5432/forgedesk_db
+DATABASE_URL=postgresql+psycopg://forgedesk_user:forgedesk_pass@localhost:5433/forgedesk_db
 FLASK_PORT=8000
 RABBITMQ_HOST=localhost
 RABBITMQ_PORT=5672
 RABBITMQ_USER=forgedesk
 RABBITMQ_PASSWORD=forgedesk
 RABBITMQ_QUEUE=forgedesk_eventos
+AUTH_SECRET=forgedesk-dev-secret
+TOKEN_TTL_SECONDS=86400
 ```
 
 ---
@@ -146,11 +148,13 @@ code/Mobile/cliente
 
 Funcionalidades entregues:
 
-- listagem de solicitacoes;
-- detalhes de uma solicitacao;
-- criacao de solicitacao;
-- integracao HTTP com a API Flask;
-- atualizacao automatica por polling a cada 10 segundos.
+- login com token de autenticação;
+- listagem de solicitações;
+- detalhes de uma solicitação;
+- criação de solicitação;
+- referência combinando orientação em texto e imagem anexada;
+- integração HTTP com a API Flask;
+- atualização automática por polling a cada 10 segundos.
 
 Para rodar o app:
 
@@ -160,19 +164,20 @@ flutter pub get
 flutter run
 ```
 
-Por padrao, o app usa:
+Por padrão, o app usa:
 
 ```text
-http://localhost:8000
+Web/Desktop: http://localhost:8000
+Android Emulator: http://10.0.2.2:8000
 ```
 
-Esse endereco e adequado para web e desktop. Para emulador Android, use:
+Também é possível sobrescrever a URL da API:
 
-```text
-http://10.0.2.2:8000
+```powershell
+flutter run --dart-define=API_BASE_URL=http://SEU_IP:8000
 ```
 
-Documentacao da arquitetura Flutter Cliente:
+Documentação da arquitetura Flutter Cliente:
 
 ```text
 Docs/arquitetura-flutter-cliente.md
@@ -235,12 +240,44 @@ Docs/arquitetura-flutter-prestador.md
 ## Endpoints
 
 - `GET /health` — verifica se a API está funcionando
+- `POST /auth/login` — autentica o usuário e retorna um token
 - `POST /solicitacoes` — cria uma solicitação
 - `GET /solicitacoes` — lista as solicitações
 - `GET /solicitacoes/{id}` — busca uma solicitação por ID
 - `PATCH /solicitacoes/{id}/status` — atualiza o status
 - `PUT /solicitacoes/{id}` — atualiza os dados da solicitação
 - `DELETE /solicitacoes/{id}` — remove uma solicitação
+
+Com exceção de `/health` e `/auth/login`, as rotas exigem:
+
+```http
+Authorization: Bearer SEU_TOKEN
+```
+
+### Login
+
+Usuário de demonstração:
+
+```text
+cliente@forgedesk.com
+123456
+```
+
+Exemplo:
+
+```http
+POST http://localhost:8000/auth/login
+Content-Type: application/json
+```
+
+```json
+{
+  "email": "cliente@forgedesk.com",
+  "senha": "123456"
+}
+```
+
+Use o campo `token` retornado nas demais requisições.
 
 ---
 
@@ -253,8 +290,43 @@ Docs/arquitetura-flutter-prestador.md
   "descricao": "Preciso de uma capa digital para um suplemento autoral de fantasia.",
   "tipo_servico": "Design",
   "orcamento": 150.0,
-  "referencia": "Estilo pintura digital escura"
+  "referencia": "{\"texto\":\"Estilo pintura digital escura\",\"imagem\":\"data:image/jpeg;base64,...\"}"
 }
+```
+
+O campo `referencia` aceita um texto simples legado ou um JSON em string com:
+
+- `texto`: orientação textual da referência;
+- `imagem`: imagem em formato `data:image/...;base64,...`.
+
+No app Flutter, os dois campos são preenchidos juntos em uma única seção de referências.
+
+### Atualizar status
+
+O ID da solicitação vai na URL:
+
+```http
+PATCH http://localhost:8000/solicitacoes/120/status
+Authorization: Bearer SEU_TOKEN
+Content-Type: application/json
+```
+
+```json
+{
+  "status": "ACEITA",
+  "prestador_id": 2
+}
+```
+
+Status válidos:
+
+```text
+PENDENTE
+ACEITA
+EM_ANDAMENTO
+CONCLUIDA
+CANCELADA
+RECUSADA
 ```
 
 ---
@@ -280,17 +352,44 @@ CANCELADA
 RECUSADA
 ```
 
+Tipos de serviço aceitos:
+
+```text
+Design
+Ilustração
+Edição de vídeo
+Identidade visual
+Modelagem 3D
+Social media
+Motion graphics
+UI/UX
+```
+
 ---
 
 ## Testes
 
-A coleção Postman da Sprint 1 está em:
+A coleção Postman está em:
 
 ```text
 code/tests/forgedesk_postman_collection.json
 ```
 
-Ela contém exemplos para criar, listar, buscar, atualizar e remover solicitações.
+Ela contém exemplos para login, criar, listar, buscar, atualizar e remover solicitações. Para usar:
+
+1. Rode o request `Login`.
+2. Copie o valor de `token` da resposta.
+3. Use o token no header das rotas protegidas:
+
+```text
+Authorization: Bearer SEU_TOKEN
+```
+
+Também existe uma collection mínima para teste de importação:
+
+```text
+code/tests/forgedesk_postman_minimal_collection.json
+```
 
 ---
 

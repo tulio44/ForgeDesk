@@ -1,7 +1,8 @@
 {
   "info": {
+    "_postman_id": "6f10e3f4-5826-4d38-8a45-8f3d5cba87a1",
     "name": "ForgeDesk",
-    "description": "Coleção de testes da Sprint 1 do backend REST do ForgeDesk.",
+    "description": "Testes da API ForgeDesk com login e Bearer Token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -9,11 +10,23 @@
       "name": "Health Check",
       "request": {
         "method": "GET",
-        "url": "http://localhost:8000/health"
-      }
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "Criar Solicitação",
+      "name": "Login",
       "request": {
         "method": "POST",
         "header": [
@@ -24,47 +37,124 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"cliente_id\": 1,\n  \"titulo\": \"Capa para PDF de RPG independente\",\n  \"descricao\": \"Preciso de uma capa digital para um suplemento autoral de fantasia.\",\n  \"tipo_servico\": \"Design\",\n  \"orcamento\": 150.0,\n  \"referencia\": \"Estilo pintura digital escura\"\n}"
+          "raw": "{\r\n  \"email\": \"cliente@forgedesk.com\",\r\n  \"senha\": \"123456\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         },
-        "url": "http://localhost:8000/solicitacoes"
-      }
+        "url": {
+          "raw": "http://localhost:8000/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "description": "Rode este request primeiro. Copie o campo token da resposta e cole na variavel auth_token da collection."
+      },
+      "response": []
     },
     {
-      "name": "Listar Solicitações",
+      "name": "Criar Solicitacao",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"cliente_id\": 1,\r\n  \"titulo\": \"Capa para PDF de RPG independente\",\r\n  \"descricao\": \"Preciso de uma capa digital para um suplemento autoral de fantasia.\",\r\n  \"tipo_servico\": \"Design\",\r\n  \"orcamento\": 150.0,\r\n  \"referencia\": \"{\\\"texto\\\":\\\"Estilo pintura digital escura\\\"}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8000/solicitacoes",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "solicitacoes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Listar Solicitacoes",
       "request": {
         "method": "GET",
-        "url": "http://localhost:8000/solicitacoes"
-      }
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/solicitacoes",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "solicitacoes"
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "Buscar Solicitação por ID",
+      "name": "Buscar Solicitacao por ID",
       "request": {
         "method": "GET",
-        "url": "http://localhost:8000/solicitacoes/1"
-      }
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/solicitacoes/{{solicitacao_id}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "solicitacoes",
+            "{{solicitacao_id}}"
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "Atualizar Status da Solicitação",
+      "name": "Atualizar Status da Solicitacao",
       "request": {
         "method": "PATCH",
         "header": [
           {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"status\": \"ACEITA\",\n  \"prestador_id\": 2\n}"
-        },
-        "url": "http://localhost:8000/solicitacoes/1/status"
-      }
-    },
-    {
-      "name": "Atualizar Solicitação",
-      "request": {
-        "method": "PUT",
-        "header": [
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
           {
             "key": "Content-Type",
             "value": "application/json"
@@ -72,17 +162,101 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"titulo\": \"Capa revisada para PDF de RPG independente\",\n  \"descricao\": \"Preciso de uma capa digital com aparência mais profissional para um suplemento autoral.\",\n  \"tipo_servico\": \"Design\",\n  \"orcamento\": 200.0,\n  \"referencia\": \"Estilo fantasia sombria\"\n}"
+          "raw": "{\r\n  \"status\": \"ACEITA\",\r\n  \"prestador_id\": 2\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
         },
-        "url": "http://localhost:8000/solicitacoes/1"
-      }
+        "url": {
+          "raw": "http://localhost:8000/solicitacoes/{{solicitacao_id}}/status",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "solicitacoes",
+            "{{solicitacao_id}}",
+            "status"
+          ]
+        }
+      },
+      "response": []
     },
     {
-      "name": "Remover Solicitação",
+      "name": "Atualizar Solicitacao",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"titulo\": \"Capa revisada para PDF de RPG independente\",\r\n  \"descricao\": \"Preciso de uma capa digital com aparencia mais profissional para um suplemento autoral.\",\r\n  \"tipo_servico\": \"Design\",\r\n  \"orcamento\": 200.0,\r\n  \"referencia\": \"{\\\"texto\\\":\\\"Estilo fantasia sombria, com contraste alto e composicao centralizada.\\\"}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8000/solicitacoes/{{solicitacao_id}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "solicitacoes",
+            "{{solicitacao_id}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Remover Solicitacao",
       "request": {
         "method": "DELETE",
-        "url": "http://localhost:8000/solicitacoes/1"
-      }
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{auth_token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/solicitacoes/{{solicitacao_id}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "solicitacoes",
+            "{{solicitacao_id}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "auth_token",
+      "value": ""
+    },
+    {
+      "key": "solicitacao_id",
+      "value": "1"
     }
   ]
 }

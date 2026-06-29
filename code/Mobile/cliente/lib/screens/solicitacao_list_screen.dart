@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../models/solicitacao.dart';
 import '../services/solicitacao_service.dart';
+import '../utils/formatters.dart';
+import '../utils/reference_image.dart';
 import 'solicitacao_create_screen.dart';
 import 'solicitacao_detail_screen.dart';
 import '../widgets/solicitacao_card.dart';
@@ -28,7 +30,9 @@ class SolicitacaoListScreen extends StatefulWidget {
 
 class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
   Timer? _timer;
+  final _searchController = TextEditingController();
   List<Solicitacao> _solicitacoes = [];
+  String _searchText = '';
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -47,6 +51,7 @@ class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -166,25 +171,139 @@ class _SolicitacaoListScreenState extends State<SolicitacaoListScreen> {
       );
     }
 
+    final solicitacoesFiltradas = _filtrarSolicitacoes();
+
     if (_solicitacoes.isEmpty) {
       return const Center(child: Text('Nenhuma solicitação cadastrada.'));
     }
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      itemCount: _solicitacoes.length + 1,
+      itemCount: solicitacoesFiltradas.isEmpty
+          ? 3
+          : solicitacoesFiltradas.length + 2,
       itemBuilder: (context, index) {
         if (index == 0) {
           return const _ListHeader();
         }
 
-        final solicitacao = _solicitacoes[index - 1];
+        if (index == 1) {
+          return _SearchField(
+            controller: _searchController,
+            onChanged: (value) {
+              setState(() {
+                _searchText = value;
+              });
+            },
+            onClear: () {
+              _searchController.clear();
+              setState(() {
+                _searchText = '';
+              });
+            },
+          );
+        }
+
+        if (solicitacoesFiltradas.isEmpty) {
+          return const _EmptySearchResult();
+        }
+
+        final solicitacao = solicitacoesFiltradas[index - 2];
 
         return SolicitacaoCard(
           solicitacao: solicitacao,
           onTap: () => _abrirSolicitacao(solicitacao),
         );
       },
+    );
+  }
+
+  List<Solicitacao> _filtrarSolicitacoes() {
+    final termo = _normalizar(_searchText);
+
+    if (termo.isEmpty) {
+      return _solicitacoes;
+    }
+
+    return _solicitacoes.where((solicitacao) {
+      final referencia = parseReferenceContent(solicitacao.referencia);
+      final campos = [
+        solicitacao.titulo,
+        solicitacao.descricao,
+        solicitacao.status,
+        solicitacao.tipoServico,
+        formatarTipoServico(solicitacao.tipoServico),
+        referencia.text ?? '',
+      ].map(_normalizar).join(' ');
+
+      return campos.contains(termo);
+    }).toList();
+  }
+
+  String _normalizar(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll('á', 'a')
+        .replaceAll('à', 'a')
+        .replaceAll('ã', 'a')
+        .replaceAll('â', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('ê', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('õ', 'o')
+        .replaceAll('ô', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ç', 'c')
+        .trim();
+  }
+}
+
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Buscar por título, tipo, status ou referência',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: controller.text.isEmpty
+              ? null
+              : IconButton(
+                  onPressed: onClear,
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Limpar busca',
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptySearchResult extends StatelessWidget {
+  const _EmptySearchResult();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(24),
+      child: Center(
+        child: Text('Nenhuma solicitação encontrada para essa busca.'),
+      ),
     );
   }
 }
