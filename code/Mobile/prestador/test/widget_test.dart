@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prestador/main.dart';
 import 'package:prestador/models/solicitacao.dart';
+import 'package:prestador/screens/oportunidade_detail_screen.dart';
 import 'package:prestador/services/solicitacao_service.dart';
 
 void main() {
@@ -19,7 +21,7 @@ void main() {
 
     await tester.pump();
 
-    expect(find.text('Oportunidades'), findsOneWidget);
+    expect(find.text('Oportunidades'), findsWidgets);
     expect(find.text('Servico pendente'), findsOneWidget);
     expect(find.text('Servico aceito'), findsNothing);
     expect(find.text('PENDENTE'), findsOneWidget);
@@ -77,8 +79,8 @@ void main() {
 
     expect(find.text('Detalhes da oportunidade'), findsOneWidget);
     expect(find.text('Descricao da oportunidade'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Aceitar solicitacao'), 200);
-    expect(find.text('Aceitar solicitacao'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Aceitar solicitação'), 200);
+    expect(find.text('Aceitar solicitação'), findsOneWidget);
   });
 
   testWidgets('accepts pending oportunidade from details screen', (
@@ -94,15 +96,105 @@ void main() {
     await tester.tap(find.text('Servico pendente'));
     await tester.pumpAndSettle();
 
-    await tester.scrollUntilVisible(find.text('Aceitar solicitacao'), 200);
-    await tester.tap(find.text('Aceitar solicitacao'));
+    await tester.scrollUntilVisible(find.text('Aceitar solicitação'), 200);
+    await tester.tap(find.text('Aceitar solicitação'));
     await tester.pump();
     await tester.pumpAndSettle();
 
     expect(service.lastStatus, 'ACEITA');
     expect(service.lastPrestadorId, 1);
     expect(find.text('Solicitacao aceita com sucesso.'), findsOneWidget);
-    expect(find.text('Aceitar solicitacao'), findsNothing);
+    expect(find.text('Aceitar solicitação'), findsNothing);
+  });
+
+  testWidgets('shows minhas solicitacoes assigned to prestador', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      PrestadorApp(
+        service: _FakeSolicitacaoService([
+          _solicitacao(status: 'PENDENTE'),
+          _solicitacao(
+            id: 2,
+            titulo: 'Servico aceito',
+            status: 'ACEITA',
+            prestadorId: 1,
+          ),
+          _solicitacao(
+            id: 3,
+            titulo: 'Servico de outro prestador',
+            status: 'EM_ANDAMENTO',
+            prestadorId: 2,
+          ),
+        ]),
+        enablePolling: false,
+      ),
+    );
+
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.assignment));
+    await tester.pump();
+
+    expect(find.text('Minhas Solicitações'), findsWidgets);
+    expect(find.text('Servico aceito'), findsOneWidget);
+    expect(find.text('Servico pendente'), findsNothing);
+    expect(find.text('Servico de outro prestador'), findsNothing);
+  });
+
+  testWidgets('starts accepted solicitacao from details screen', (
+    WidgetTester tester,
+  ) async {
+    final service = _FakeSolicitacaoService([
+      _solicitacao(status: 'ACEITA', prestadorId: 1),
+    ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: OportunidadeDetailScreen(
+          solicitacaoId: 1,
+          service: service,
+          enablePolling: false,
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.scrollUntilVisible(find.text('Iniciar serviço'), 200);
+    await tester.tap(find.text('Iniciar serviço'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(service.lastStatus, 'EM_ANDAMENTO');
+    expect(service.lastPrestadorId, 1);
+  });
+
+  testWidgets('concludes in-progress solicitacao from details screen', (
+    WidgetTester tester,
+  ) async {
+    final service = _FakeSolicitacaoService([
+      _solicitacao(status: 'EM_ANDAMENTO', prestadorId: 1),
+    ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: OportunidadeDetailScreen(
+          solicitacaoId: 1,
+          service: service,
+          enablePolling: false,
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.scrollUntilVisible(find.text('Concluir serviço'), 200);
+    await tester.tap(find.text('Concluir serviço'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(service.lastStatus, 'CONCLUIDA');
+    expect(service.lastPrestadorId, 1);
+    await tester.scrollUntilVisible(find.text('Serviço concluído.'), 200);
+    expect(find.text('Serviço concluído.'), findsOneWidget);
   });
 }
 

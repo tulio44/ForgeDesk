@@ -24,7 +24,7 @@ class OportunidadeDetailScreen extends StatefulWidget {
 class _OportunidadeDetailScreenState extends State<OportunidadeDetailScreen> {
   late Future<Solicitacao> _solicitacaoFuture;
   Timer? _pollingTimer;
-  bool _aceitando = false;
+  bool _atualizandoStatus = false;
 
   @override
   void initState() {
@@ -63,15 +63,19 @@ class _OportunidadeDetailScreenState extends State<OportunidadeDetailScreen> {
     });
   }
 
-  Future<void> _aceitarSolicitacao() async {
+  Future<void> _atualizarStatus({
+    required String status,
+    required String mensagemSucesso,
+    required String mensagemErro,
+  }) async {
     setState(() {
-      _aceitando = true;
+      _atualizandoStatus = true;
     });
 
     try {
       await widget.service.atualizarStatus(
         id: widget.solicitacaoId,
-        status: 'ACEITA',
+        status: status,
         prestadorId: 1,
       );
 
@@ -79,9 +83,9 @@ class _OportunidadeDetailScreenState extends State<OportunidadeDetailScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Solicitacao aceita com sucesso.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(mensagemSucesso)));
 
       setState(() {
         _solicitacaoFuture = _carregarSolicitacao();
@@ -91,15 +95,13 @@ class _OportunidadeDetailScreenState extends State<OportunidadeDetailScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nao foi possivel aceitar a solicitacao.'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(mensagemErro)));
     } finally {
       if (mounted) {
         setState(() {
-          _aceitando = false;
+          _atualizandoStatus = false;
         });
       }
     }
@@ -112,7 +114,7 @@ class _OportunidadeDetailScreenState extends State<OportunidadeDetailScreen> {
         title: const Text('Detalhes da oportunidade'),
         actions: [
           IconButton(
-            onPressed: _aceitando ? null : _atualizarDetalhes,
+            onPressed: _atualizandoStatus ? null : _atualizarDetalhes,
             icon: const Icon(Icons.refresh),
             tooltip: 'Atualizar',
           ),
@@ -169,17 +171,7 @@ class _OportunidadeDetailScreenState extends State<OportunidadeDetailScreen> {
                 value: solicitacao.atualizadoEm,
               ),
               const SizedBox(height: 24),
-              if (solicitacao.status.toUpperCase() == 'PENDENTE')
-                FilledButton(
-                  onPressed: _aceitando ? null : _aceitarSolicitacao,
-                  child: _aceitando
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Aceitar solicitacao'),
-                ),
+              ..._buildAcoes(solicitacao),
             ],
           );
         },
@@ -195,6 +187,89 @@ class _OportunidadeDetailScreenState extends State<OportunidadeDetailScreen> {
     }
 
     return 'R\$ ${orcamento.toStringAsFixed(2)}';
+  }
+
+  List<Widget> _buildAcoes(Solicitacao solicitacao) {
+    final status = solicitacao.status.toUpperCase();
+    final pertenceAoPrestador = solicitacao.prestadorId == 1;
+
+    if (status == 'PENDENTE') {
+      return [
+        _StatusActionButton(
+          loading: _atualizandoStatus,
+          label: 'Aceitar solicitação',
+          onPressed: () => _atualizarStatus(
+            status: 'ACEITA',
+            mensagemSucesso: 'Solicitacao aceita com sucesso.',
+            mensagemErro: 'Nao foi possivel aceitar a solicitacao.',
+          ),
+        ),
+      ];
+    }
+
+    if (!pertenceAoPrestador) {
+      return const [];
+    }
+
+    if (status == 'ACEITA') {
+      return [
+        _StatusActionButton(
+          loading: _atualizandoStatus,
+          label: 'Iniciar serviço',
+          onPressed: () => _atualizarStatus(
+            status: 'EM_ANDAMENTO',
+            mensagemSucesso: 'Servico iniciado com sucesso.',
+            mensagemErro: 'Nao foi possivel iniciar o servico.',
+          ),
+        ),
+      ];
+    }
+
+    if (status == 'EM_ANDAMENTO') {
+      return [
+        _StatusActionButton(
+          loading: _atualizandoStatus,
+          label: 'Concluir serviço',
+          onPressed: () => _atualizarStatus(
+            status: 'CONCLUIDA',
+            mensagemSucesso: 'Servico concluido com sucesso.',
+            mensagemErro: 'Nao foi possivel concluir o servico.',
+          ),
+        ),
+      ];
+    }
+
+    if (status == 'CONCLUIDA') {
+      return const [Text('Serviço concluído.')];
+    }
+
+    return const [];
+  }
+}
+
+class _StatusActionButton extends StatelessWidget {
+  const _StatusActionButton({
+    required this.loading,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final bool loading;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton(
+      onPressed: loading ? null : onPressed,
+      child: loading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Text(label),
+    );
   }
 }
 
