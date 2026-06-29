@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:prestador/screens/oportunidade_list_screen.dart';
+import 'package:prestador/services/solicitacao_service.dart';
 
 void main() {
-  runApp(const PrestadorApp());
+  runApp(PrestadorApp());
 }
 
 class PrestadorApp extends StatelessWidget {
-  const PrestadorApp({super.key});
+  const PrestadorApp({super.key, this.service, this.enablePolling = true});
+
+  final SolicitacaoService? service;
+  final bool enablePolling;
 
   @override
   Widget build(BuildContext context) {
@@ -14,20 +19,9 @@ class PrestadorApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
       ),
-      home: const PrestadorHomePage(),
-    );
-  }
-}
-
-class PrestadorHomePage extends StatelessWidget {
-  const PrestadorHomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('ForgeDesk Prestador')),
-      body: const Center(
-        child: Text('App Prestador do ForgeDesk'),
+      home: OportunidadeListScreen(
+        service: service,
+        enablePolling: enablePolling,
       ),
     );
   }
