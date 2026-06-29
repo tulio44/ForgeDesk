@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:prestador/models/solicitacao.dart';
+import 'package:prestador/screens/oportunidade_detail_screen.dart';
 import 'package:prestador/services/solicitacao_service.dart';
 import 'package:prestador/widgets/oportunidade_card.dart';
 
@@ -63,12 +64,29 @@ class _OportunidadeListScreenState extends State<OportunidadeListScreen> {
     });
   }
 
-  void _abrirDetalhesEmBreve() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Detalhes da oportunidade serao implementados em breve.'),
+  Future<void> _abrirDetalhes(Solicitacao solicitacao) async {
+    final id = solicitacao.id;
+
+    if (id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Solicitacao sem id para abrir detalhes.'),
+        ),
+      );
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => OportunidadeDetailScreen(
+          solicitacaoId: id,
+          service: widget.service,
+          enablePolling: widget.enablePolling,
+        ),
       ),
     );
+
+    _atualizarOportunidades();
   }
 
   @override
@@ -119,7 +137,7 @@ class _OportunidadeListScreenState extends State<OportunidadeListScreen> {
               itemBuilder: (context, index) {
                 return OportunidadeCard(
                   solicitacao: oportunidades[index],
-                  onTap: _abrirDetalhesEmBreve,
+                  onTap: () => _abrirDetalhes(oportunidades[index]),
                 );
               },
             ),
