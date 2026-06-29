@@ -45,19 +45,17 @@ class _PrestadorHomeScreenState extends State<PrestadorHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final service = widget.service;
-    final screens = [
-      OportunidadeListScreen(
-        service: service,
-        enablePolling: widget.enablePolling,
-      ),
-      MinhasSolicitacoesScreen(
-        service: service,
-        enablePolling: widget.enablePolling,
-      ),
-    ];
 
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: screens),
+      body: _selectedIndex == 0
+          ? OportunidadeListScreen(
+              service: service,
+              enablePolling: widget.enablePolling,
+            )
+          : MinhasSolicitacoesScreen(
+              service: service,
+              enablePolling: widget.enablePolling,
+            ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {

@@ -180,6 +180,58 @@ Docs/arquitetura-flutter-cliente.md
 
 ---
 
+## Sprint 4 — App Prestador Flutter
+
+A Sprint 4 implementa o app Flutter do prestador, localizado em:
+
+```text
+code/Mobile/prestador
+```
+
+Funcionalidades entregues:
+
+- listagem de oportunidades pendentes;
+- detalhes de uma solicitacao;
+- aceite de solicitacao pelo prestador;
+- tela de Minhas Solicitacoes;
+- inicio e conclusao de servico;
+- integracao HTTP com a API Flask;
+- atualizacao automatica por polling a cada 10 segundos.
+
+Para rodar o app:
+
+```powershell
+cd code/Mobile/prestador
+flutter pub get
+flutter run
+```
+
+Fluxo integrado:
+
+```text
+Cliente cria solicitacao -> Backend registra e publica eventos -> Prestador aceita e atualiza status -> Cliente acompanha a evolucao
+```
+
+Por padrao, o app usa:
+
+```text
+http://localhost:8000
+```
+
+Esse endereco e adequado para web e desktop. Para emulador Android, use:
+
+```text
+http://10.0.2.2:8000
+```
+
+Documentacao da arquitetura Flutter Prestador:
+
+```text
+Docs/arquitetura-flutter-prestador.md
+```
+
+---
+
 ## Endpoints
 
 - `GET /health` — verifica se a API está funcionando
@@ -248,6 +300,7 @@ Ela contém exemplos para criar, listar, buscar, atualizar e remover solicitaç�
 - Arquitetura: `Docs/diagrama-arquitetura.md`
 - Eventos MOM: `Docs/eventos-mom.md`
 - Relatório MOM: `Docs/relatorio-integracao-mom.md`
+- Arquitetura Flutter Prestador: `Docs/arquitetura-flutter-prestador.md`
 - Schema do banco: `code/Back/database/schema.sql`
 - Collection Postman: `code/tests/forgedesk_postman_collection.json`
 
