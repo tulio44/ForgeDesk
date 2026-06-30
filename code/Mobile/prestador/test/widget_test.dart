@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prestador/main.dart';
 import 'package:prestador/models/solicitacao.dart';
 import 'package:prestador/screens/oportunidade_detail_screen.dart';
+import 'package:prestador/services/auth_service.dart';
 import 'package:prestador/services/solicitacao_service.dart';
 
 void main() {
@@ -15,6 +16,7 @@ void main() {
           _solicitacao(status: 'PENDENTE'),
           _solicitacao(id: 2, titulo: 'Servico aceito', status: 'ACEITA'),
         ]),
+        initialAuth: _auth,
         enablePolling: false,
       ),
     );
@@ -33,6 +35,7 @@ void main() {
     await tester.pumpWidget(
       PrestadorApp(
         service: _FakeSolicitacaoService([_solicitacao(status: 'ACEITA')]),
+        initialAuth: _auth,
         enablePolling: false,
       ),
     );
@@ -51,6 +54,7 @@ void main() {
     await tester.pumpWidget(
       PrestadorApp(
         service: _FakeSolicitacaoService([], shouldFail: true),
+        initialAuth: _auth,
         enablePolling: false,
       ),
     );
@@ -69,6 +73,7 @@ void main() {
     await tester.pumpWidget(
       PrestadorApp(
         service: _FakeSolicitacaoService([_solicitacao(status: 'PENDENTE')]),
+        initialAuth: _auth,
         enablePolling: false,
       ),
     );
@@ -89,7 +94,7 @@ void main() {
     final service = _FakeSolicitacaoService([_solicitacao(status: 'PENDENTE')]);
 
     await tester.pumpWidget(
-      PrestadorApp(service: service, enablePolling: false),
+      PrestadorApp(service: service, initialAuth: _auth, enablePolling: false),
     );
 
     await tester.pump();
@@ -127,13 +132,14 @@ void main() {
             prestadorId: 2,
           ),
         ]),
+        initialAuth: _auth,
         enablePolling: false,
       ),
     );
 
     await tester.pump();
     await tester.tap(find.byIcon(Icons.assignment));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Minhas Solicitações'), findsWidgets);
     expect(find.text('Servico aceito'), findsOneWidget);
@@ -196,7 +202,20 @@ void main() {
     await tester.scrollUntilVisible(find.text('Serviço concluído.'), 200);
     expect(find.text('Serviço concluído.'), findsOneWidget);
   });
+
+  testWidgets('shows login before authentication', (WidgetTester tester) async {
+    await tester.pumpWidget(const PrestadorApp(enablePolling: false));
+
+    expect(find.text('Entrar no ForgeDesk'), findsOneWidget);
+    expect(find.text('prestador@forgedesk.com'), findsOneWidget);
+  });
 }
+
+const _auth = AuthResult(
+  token: 'token-demo',
+  nome: 'Prestador Demo',
+  email: 'prestador@forgedesk.com',
+);
 
 class _FakeSolicitacaoService extends SolicitacaoService {
   _FakeSolicitacaoService(this.solicitacoes, {this.shouldFail = false});

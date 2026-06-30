@@ -25,9 +25,12 @@ void main() {
 
   test('listarSolicitacoes fetches solicitacoes from API', () async {
     final service = SolicitacaoService(
+      apiBaseUrl: apiBaseUrl,
+      authToken: 'token-demo',
       client: MockClient((request) async {
         expect(request.method, 'GET');
         expect(request.url.toString(), '$apiBaseUrl/solicitacoes');
+        expect(request.headers['Authorization'], 'Bearer token-demo');
 
         return http.Response(jsonEncode([solicitacaoJson]), 200);
       }),
@@ -42,9 +45,12 @@ void main() {
 
   test('buscarSolicitacaoPorId fetches a solicitacao by id', () async {
     final service = SolicitacaoService(
+      apiBaseUrl: apiBaseUrl,
+      authToken: 'token-demo',
       client: MockClient((request) async {
         expect(request.method, 'GET');
         expect(request.url.toString(), '$apiBaseUrl/solicitacoes/1');
+        expect(request.headers['Authorization'], 'Bearer token-demo');
 
         return http.Response(jsonEncode(solicitacaoJson), 200);
       }),
@@ -58,10 +64,13 @@ void main() {
 
   test('atualizarStatus sends status and prestador_id to API', () async {
     final service = SolicitacaoService(
+      apiBaseUrl: apiBaseUrl,
+      authToken: 'token-demo',
       client: MockClient((request) async {
         expect(request.method, 'PATCH');
         expect(request.url.toString(), '$apiBaseUrl/solicitacoes/1/status');
         expect(request.headers['Content-Type'], 'application/json');
+        expect(request.headers['Authorization'], 'Bearer token-demo');
         expect(jsonDecode(request.body), {
           'status': 'EM_ANDAMENTO',
           'prestador_id': 3,
@@ -82,6 +91,7 @@ void main() {
 
   test('throws exception when API returns a non-200 status', () {
     final service = SolicitacaoService(
+      apiBaseUrl: apiBaseUrl,
       client: MockClient((request) async {
         return http.Response('Erro', 500);
       }),
@@ -92,6 +102,7 @@ void main() {
 
   test('throws exception when API connection fails', () {
     final service = SolicitacaoService(
+      apiBaseUrl: apiBaseUrl,
       client: MockClient((request) {
         throw Exception('Connection refused');
       }),

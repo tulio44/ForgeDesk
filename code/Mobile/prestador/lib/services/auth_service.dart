@@ -1,0 +1,54 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import 'solicitacao_service.dart';
+
+class AuthResult {
+  const AuthResult({
+    required this.token,
+    required this.nome,
+    required this.email,
+  });
+
+  final String token;
+  final String nome;
+  final String email;
+}
+
+class AuthService {
+  AuthService({http.Client? client, String? apiBaseUrl})
+    : _client = client ?? http.Client(),
+      _baseUrl = apiBaseUrl ?? baseUrl;
+
+  final http.Client _client;
+  final String _baseUrl;
+
+  Future<AuthResult> login({
+    required String email,
+    required String senha,
+  }) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$_baseUrl/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'senha': senha}),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('E-mail ou senha invalidos.');
+      }
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final usuario = data['usuario'] as Map<String, dynamic>;
+
+      return AuthResult(
+        token: data['token'] as String,
+        nome: usuario['nome'] as String,
+        email: usuario['email'] as String,
+      );
+    } on Exception {
+      throw Exception('Falha ao conectar com a API.');
+    }
+  }
+}

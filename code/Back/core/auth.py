@@ -14,6 +14,11 @@ DEMO_USERS = {
         "id": 1,
         "nome": "Cliente Demo",
         "senha": "123456"
+    },
+    "prestador@forgedesk.com": {
+        "id": 1,
+        "nome": "Prestador Demo",
+        "senha": "123456"
     }
 }
 

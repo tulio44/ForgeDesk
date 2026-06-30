@@ -1,18 +1,36 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:prestador/models/solicitacao.dart';
 
-const String baseUrl = 'http://localhost:8000';
-// Para emulador Android, use: http://10.0.2.2:8000
+const String _configuredBaseUrl = String.fromEnvironment('API_BASE_URL');
+const String _configuredAuthToken = String.fromEnvironment('AUTH_TOKEN');
+
+String get baseUrl {
+  if (_configuredBaseUrl.isNotEmpty) {
+    return _configuredBaseUrl;
+  }
+
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    return 'http://10.0.2.2:8000';
+  }
+
+  return 'http://localhost:8000';
+}
 
 class SolicitacaoService {
-  SolicitacaoService({http.Client? client, String apiBaseUrl = baseUrl})
-    : _client = client ?? http.Client(),
-      _baseUrl = apiBaseUrl;
+  SolicitacaoService({
+    http.Client? client,
+    String? apiBaseUrl,
+    String? authToken,
+  }) : _client = client ?? http.Client(),
+       _baseUrl = apiBaseUrl ?? baseUrl,
+       _authToken = authToken ?? _configuredAuthToken;
 
   final http.Client _client;
   final String _baseUrl;
+  final String _authToken;
 
   Future<List<Solicitacao>> listarSolicitacoes() async {
     final response = await _get('/solicitacoes');
@@ -63,7 +81,7 @@ class SolicitacaoService {
 
   Future<http.Response> _get(String path) async {
     try {
-      return await _client.get(_uri(path));
+      return await _client.get(_uri(path), headers: _headers());
     } on Exception {
       throw Exception('Falha ao conectar com a API.');
     }
@@ -73,7 +91,7 @@ class SolicitacaoService {
     try {
       return await _client.patch(
         _uri(path),
-        headers: {'Content-Type': 'application/json'},
+        headers: _headers(contentTypeJson: true),
         body: jsonEncode(body),
       );
     } on Exception {
@@ -83,5 +101,12 @@ class SolicitacaoService {
 
   Uri _uri(String path) {
     return Uri.parse('$_baseUrl$path');
+  }
+
+  Map<String, String> _headers({bool contentTypeJson = false}) {
+    return {
+      if (contentTypeJson) 'Content-Type': 'application/json',
+      if (_authToken.isNotEmpty) 'Authorization': 'Bearer $_authToken',
+    };
   }
 }
